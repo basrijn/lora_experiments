@@ -35,3 +35,5 @@ Exact same results
 Adafruit example code
 
 On the desk: RSSI -32, SNR 9
+
+Signal loss: Well outside of the house
