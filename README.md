@@ -23,3 +23,16 @@ driver.setCodingRate4(5);
 driver.setSpreadingFactor(7);
 ```
 Timeout set to 40
+
+## Cheat sheet for the spreading factors
+The Radiohead library uses easy to translate values for most setX functions. Spreading factor is a little different and needs checking the header file. For easy translations:
+
+RH_RF95_SPREADING_FACTOR_64CPS == setSpreadingFactor(6)
+RH_RF95_SPREADING_FACTOR_128CPS == setSpreadingFactor(7)
+RH_RF95_SPREADING_FACTOR_256CPS == setSpreadingFactor(8)
+RH_RF95_SPREADING_FACTOR_512CPS == setSpreadingFactor(9)
+RH_RF95_SPREADING_FACTOR_1024CPS == setSpreadingFactor(10)
+RH_RF95_SPREADING_FACTOR_2048CPS == setSpreadingFactor(11)
+RH_RF95_SPREADING_FACTOR_4096CPS == setSpreadingFactor(12)
+
+If you use a value < 6, it will 6 and > 12 will use 12
