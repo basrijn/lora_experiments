@@ -36,3 +36,9 @@ The Radiohead library uses easy to translate values for most setX functions. Spr
 - RH_RF95_SPREADING_FACTOR_4096CPS == setSpreadingFactor(12)
 
 If you use a value < 6, it will 6 and > 12 will use 12
+
+# Interesting reading
+## Adafruit articles for their hardware
+https://learn.adafruit.com/adafruit-rfm69hcw-and-rfm96-rfm95-rfm98-lora-packet-padio-breakouts
+https://learn.adafruit.com/adafruit-feather-32u4-radio-with-lora-radio-module/
+
