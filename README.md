@@ -42,3 +42,10 @@ If you use a value < 6, it will 6 and > 12 will use 12
 https://learn.adafruit.com/adafruit-rfm69hcw-and-rfm96-rfm95-rfm98-lora-packet-padio-breakouts
 https://learn.adafruit.com/adafruit-feather-32u4-radio-with-lora-radio-module/
 
+## Range tuning
+https://www.rocketscream.com/blog/2017/08/21/the-sx1276-modules-shootout-hoperfs-rfm95w-vs-nicerfs-lora1276-c1-vs-hpdteks-hpd13/
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5038744/
+https://www.cooking-hacks.com/documentation/tutorials/extreme-range-lora-sx1272-module-shield-arduino-raspberry-pi-intel-galileo/
+http://forum.anarduino.com/posts/list/60.page
+https://arduino.stackexchange.com/questions/39609/radiohead-library-custom-configuration-for-rfm96-lora
+https://electronics.stackexchange.com/questions/278192/understanding-the-relationship-between-lora-chips-chirps-symbols-and-bits
