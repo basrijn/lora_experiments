@@ -42,7 +42,7 @@ If you use a value < 6, it will 6 and > 12 will use 12
 https://learn.adafruit.com/adafruit-rfm69hcw-and-rfm96-rfm95-rfm98-lora-packet-padio-breakouts
 https://learn.adafruit.com/adafruit-feather-32u4-radio-with-lora-radio-module/
 
-## Range tuning
+## Lora discussions
 Long range tests comparing different chipsets, they use a custome encoding (SF=12, BW=125 kHz, CR=4/5) that is used by default in LoraWan environments
 https://www.rocketscream.com/blog/2017/08/21/the-sx1276-modules-shootout-hoperfs-rfm95w-vs-nicerfs-lora1276-c1-vs-hpdteks-hpd13/
 
@@ -54,6 +54,9 @@ http://forum.anarduino.com/posts/list/60.page
 
 Code example of setting a custom config
 https://arduino.stackexchange.com/questions/39609/radiohead-library-custom-configuration-for-rfm96-lora
+
+Low data rate bit issue in Radiohead
+https://hackaday.io/project/27791-esp32-lora-oled-module/log/69630-radiohead-rf95-driver-low-data-rate-optimization
 
 Post discussion relationship between the different Lora protocol settings (RF)
 https://electronics.stackexchange.com/questions/278192/understanding-the-relationship-between-lora-chips-chirps-symbols-and-bits
