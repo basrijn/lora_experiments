@@ -43,9 +43,20 @@ https://learn.adafruit.com/adafruit-rfm69hcw-and-rfm96-rfm95-rfm98-lora-packet-p
 https://learn.adafruit.com/adafruit-feather-32u4-radio-with-lora-radio-module/
 
 ## Range tuning
+Long range tests comparing different chipsets, they use a custome encoding (SF=12, BW=125 kHz, CR=4/5) that is used by default in LoraWan environments
 https://www.rocketscream.com/blog/2017/08/21/the-sx1276-modules-shootout-hoperfs-rfm95w-vs-nicerfs-lora1276-c1-vs-hpdteks-hpd13/
-https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5038744/
-https://www.cooking-hacks.com/documentation/tutorials/extreme-range-lora-sx1272-module-shield-arduino-raspberry-pi-intel-galileo/
+
+Long range tests with different hardware
+https://www.cooking-hacks.com/documentation/tutorials/extreme-range-lora-sx1272-module-shield-arduino-raspberry-pi-intel-galileo.html
+
+Long range (baloon) tests with some range results
 http://forum.anarduino.com/posts/list/60.page
+
+Code example of setting a custom config
 https://arduino.stackexchange.com/questions/39609/radiohead-library-custom-configuration-for-rfm96-lora
+
+Post discussion relationship between the different Lora protocol settings (RF)
 https://electronics.stackexchange.com/questions/278192/understanding-the-relationship-between-lora-chips-chirps-symbols-and-bits
+
+Paper describing the spreading factor etc in great detail (background on how that all works)
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5038744/
