@@ -33,7 +33,7 @@ uint8_t txRetries = 0;
 #define RF95_FREQ 915.0
 
 uint16_t loraAckTimeout = 20;
-uint8_t loraRetries = 1;
+uint8_t loraRetries = 3;
 uint8_t loraConfigChoice = 5;
 
 // Singleton instance of the radio driver
@@ -46,50 +46,53 @@ char data[RH_RF95_MAX_MESSAGE_LEN] = "";
 // Dont put this on the stack:
 uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
 
-
 /// Function to walk thru the differnt Lora configurations. Longest range to shortest range
 void loraConfig()
 {
   // Determine what modem config we need to set
-  Serial.print("\nSetting modem configuration: [");Serial.print(loraConfigChoice);Serial.print("] ");
-  driver.sleep();
-
+  Serial.print("\nSetting modem configuration: [");
+  Serial.print(loraConfigChoice);
+  Serial.print("] ");
 
   switch (loraConfigChoice)
   {
   case 5:
-    if (!driver.setModemConfig(RH_RF95::Bw125Cr48Sf4096))
-      Serial.println("FAILED");
-    Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range");
+    //Bw41_7Cr48Sf4086
+    driver.setSignalBandwidth(62500);
+    driver.setCodingRate4(8);
+    driver.setSpreadingFactor(12); // 4096
+    Serial.println("SUCCESS\nSet Config to: Bw = 41.7 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range");
     loraAckTimeout = 1000;
     break;
   case 4:
-    if (!driver.setModemConfig(RH_RF95::Bw31_25Cr48Sf512))
+    if (!driver.setModemConfig(RH_RF95::Bw125Cr48Sf4096))
       Serial.println("FAILED");
-    Serial.println("SUCCESS\nSet Config to: Bw = 31.25 kHz, Cr = 4/8, Sf = 512chips/symbol, CRC on. Slow+long range");
-    loraAckTimeout = 700;
-
+    Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range");
+    loraAckTimeout = 2000;
     break;
   case 3:
     if (!driver.setModemConfig(RH_RF95::Bw125Cr45Sf128))
       Serial.println("FAILED");
     Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range");
-    loraAckTimeout = 40;
+    loraAckTimeout = 100;
     break;
   case 2:
     if (!driver.setModemConfig(RH_RF95::Bw500Cr45Sf128))
       Serial.println("FAILED");
     Serial.println("SUCCESS\nSet Config to: Bw = 500 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Fast+short range");
-    loraAckTimeout = 100;
+    loraAckTimeout = 250;
     break;
   case 1:
-    if (!driver.setModemConfig(RH_RF95::Bw125Cr48Sf4096))
-      Serial.println("FAILED");
-    Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range");
+    //Bw125Cr45Sf4086
+    driver.setSignalBandwidth(125000);
+    driver.setCodingRate4(5);
+    driver.setSpreadingFactor(12); // 4096
     loraAckTimeout = 1000;
+    Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/5, Sf = 4096chips/symbol, CRC on. LoraWan default range");
     break;
   }
 
+  /*
   // With the modem roughly configured, do an On Air test to set better timeout
     // Build the packet
   snprintf(data, RH_RF95_MAX_MESSAGE_LEN, "GNIP XXX"); // Same length string to get correct on air time
@@ -112,21 +115,18 @@ void loraConfig()
     loraAckTimeout = loraOnAirTime + 50;
     Serial.println(loraAckTimeout);
   }
+  */
 
   // Setting timeout
-  Serial.print("\nSetting modem timeout: ");
   manager.setTimeout(loraAckTimeout);
-  Serial.println("DONE");
 
   // Setting retries
-  Serial.print("\nSetting modem retries: ");
   manager.setRetries(loraRetries);
-  Serial.println("DONE");
 
   // Setting the Xmit delay to 2 the timeout. Otherwise the ACK from the bouncer might still be in flight on MSG from xmitter
-  Serial.print("\nSetting xmit interval: ");
   txInterval = 2 * loraAckTimeout;
-  Serial.println("DONE");
+
+  delay(1000);
 }
 
 void setup()
@@ -168,6 +168,7 @@ void setup()
     delay(1000);
   }
   Serial.println("SUCCESS");
+  delay(500);
 
   Serial.print(".. Setting radio frequency: ");
   if (!driver.setFrequency(RF95_FREQ))
@@ -187,15 +188,10 @@ void setup()
   // you can set transmitter powers from 5 to 23 dBm:
   driver.setTxPower(23, false);
 
-  // Manager settings
-  manager.setTimeout(loraAckTimeout); // 200ms by default, not enough for slow modes?
-  manager.setRetries(loraRetries);          // 3 by default, 0  means only ever send once
-
   loraConfig();
 
   Serial.println("\nAll setup tasks complete");
 }
-
 
 /// Send a packet and report on success (with retries etc)
 void loraPing()
@@ -204,27 +200,27 @@ void loraPing()
 
   if (millis() - lastTX < txInterval)
     return;
-  
+
   // Now we can get to the work of sending something out
   Serial.println("\n------------------");
   Serial.println("Sending a ping out");
   Serial.println("------------------");
   digitalWrite(LED, HIGH);
-  
+
   txCounter += 1;
-
-
 
   // Now we send the PING
   snprintf(data, RH_RF95_MAX_MESSAGE_LEN, "PING %d", txCounter);
 
-    // Reset the retry counter
+  // Reset the retry counter
   manager.resetRetransmissions();
-    // Reset the TX timer
+  // Reset the TX timer
   lastTX = millis();
- 
-  Serial.print("Sending packet = ["); Serial.print(data); Serial.println("]");
-  if (!manager.sendtoWait((uint8_t *)data, sizeof(data), 1))
+
+  Serial.print("Sending packet = [");
+  Serial.print(data);
+  Serial.println("]");
+  if (!manager.sendtoWait((uint8_t *)data, sizeof(data), 2))
   {
     Serial.println(".. No Ack received");
     txRetries += 1;
@@ -233,47 +229,55 @@ void loraPing()
   {
     Serial.println(".. Ack received");
     Serial.print(".... RSSI=");
-		Serial.print(driver.lastRssi(), DEC);
-		Serial.print(" / SNR=");
-		Serial.println(driver.lastSNR(), DEC);
+    Serial.print(driver.lastRssi(), DEC);
+    Serial.print(" / SNR=");
+    Serial.println(driver.lastSNR(), DEC);
 
-    Serial.print("For config choice "); Serial.print(loraConfigChoice); Serial.print(" the timeOut that worked was "); Serial.println(loraAckTimeout);
+    Serial.print(".... Time in sendtoWait: ");
+    Serial.println(millis() - lastTX);
+
+    // How many retransmissions before we got a reply back
+    Serial.print(".... Retries needed: ");
+    Serial.println(manager.retransmissions());
+    // How many retries before we got a reply back
+    Serial.print(".... Retries configured: ");
+    Serial.println(manager.retries());
+
+    Serial.print("For config choice ");
+    Serial.print(loraConfigChoice);
+    Serial.print(" the timeOut that worked was ");
+    Serial.println(loraAckTimeout);
 
     loraConfigChoice -= 1;
     loraConfig();
   }
-
-  Serial.print(".... Time in sendtoWait: ");
-  Serial.println(millis() - lastTX);
-
-  // How many retransmissions before we got a reply back
-  Serial.print(".... Retries needed: ");
-  Serial.println(manager.retransmissions());
-  // How many retries before we got a reply back
-  Serial.print(".... Retries configured: ");
-  Serial.println(manager.retries());
-  // What is the current timeout
-  Serial.print(".... Time Out configured: ");
-  Serial.println(loraAckTimeout);
 
   digitalWrite(LED, LOW);
   // Reset the TX timer
   lastTX = millis();
 }
 
-
-
 void loop()
 {
-  if (txRetries >= 10){
+  if (txRetries >= 10)
+  {
     Serial.println("\nWe have hit our retry limit");
     if (loraConfigChoice == 5)
     {
       // This is our most robust mode, we have failed to get a reliable connection
       Serial.println("\nWe failed to make a reliable connection. Please reposition and restart the controller");
-      while (1)
+      while (true)
         ;
     }
+  }
+
+  // Determine if we need to end the test
+  if (loraConfigChoice <= 0)
+  {
+    // This is our most robust mode, we have failed to get a reliable connection
+    Serial.println("\nManaged to connect in all modes. Stopping testing");
+    while (true)
+      ;
   }
   loraPing();
 }
