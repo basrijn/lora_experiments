@@ -24,7 +24,7 @@ uint8_t txRetries = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define LORA_ADDRESS 1
+#define LORA_ADDRESS 2
 
 #define RFM95_CS 8
 #define RFM95_RST 4
@@ -61,60 +61,32 @@ void loraConfig()
     if (!driver.setModemConfig(RH_RF95::Bw125Cr48Sf4096))
       Serial.println("FAILED");
     Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range");
-    loraAckTimeout = 1000;
     break;
   case 4:
     if (!driver.setModemConfig(RH_RF95::Bw31_25Cr48Sf512))
       Serial.println("FAILED");
     Serial.println("SUCCESS\nSet Config to: Bw = 31.25 kHz, Cr = 4/8, Sf = 512chips/symbol, CRC on. Slow+long range");
-    loraAckTimeout = 700;
-
     break;
   case 3:
     if (!driver.setModemConfig(RH_RF95::Bw125Cr45Sf128))
       Serial.println("FAILED");
     Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range");
-    loraAckTimeout = 40;
     break;
   case 2:
     if (!driver.setModemConfig(RH_RF95::Bw500Cr45Sf128))
       Serial.println("FAILED");
     Serial.println("SUCCESS\nSet Config to: Bw = 500 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Fast+short range");
-    loraAckTimeout = 100;
     break;
   case 1:
     if (!driver.setModemConfig(RH_RF95::Bw125Cr48Sf4096))
       Serial.println("FAILED");
     Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range");
-    loraAckTimeout = 1000;
     break;
-  }
-
-  // With the modem roughly configured, do an On Air test to set better timeout
-    // Build the packet
-  snprintf(data, RH_RF95_MAX_MESSAGE_LEN, "PING XXX");
-  lastTX = millis();
-
-  // We send a broadcast packet to determine what our on air time is (it does not wait for an ACK)
-  Serial.println("\nSending a broadcast packet for On Air time calculation");
-  digitalWrite(LED, HIGH);
-  manager.sendtoWait((uint8_t *)data, sizeof(data), 255);
-  digitalWrite(LED, LOW);
-  uint16_t loraOnAirTime = millis() - lastTX;
-  Serial.print(".. On Air time = ");Serial.println(loraOnAirTime);
-
-  // Do some sanity checking on the timeOut setting. The driver varies the timeout between 1 x timeout to 1.5 x timeout
-  // So create a small buffer for the remote end to respond
-  if (loraOnAirTime + 50 > loraAckTimeout) // Remote end should be able to do it's processing in 50 ms
-  {
-    // The timeout is probably not sufficient for the current settings
-    Serial.print(".... Adjusting timeout to: ");
-    loraAckTimeout = loraOnAirTime + 50;
-    Serial.println(loraAckTimeout);
   }
 
   // Setting timeout
   Serial.print("\nSetting modem timeout: ");
+  loraAckTimeout = 100;
   manager.setTimeout(loraAckTimeout);
   Serial.println("DONE");
 
