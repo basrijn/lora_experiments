@@ -1,4 +1,8 @@
 # LORA testing
+
+## Issues
+If two radio do not want to connect reliably, check if you are using a narrow bandwidth. Small amounts if misallignment between the frequencies used by the radios causes issues.
+
 ## Reliable datagram
 Make sure to only do a manager.init() and not a driver.init() AND an manager.init(). The effect is that the TX power is dropped to near zero.
 
@@ -48,6 +52,9 @@ https://www.rocketscream.com/blog/2017/08/21/the-sx1276-modules-shootout-hoperfs
 
 Long range tests with different hardware
 https://www.cooking-hacks.com/documentation/tutorials/extreme-range-lora-sx1272-module-shield-arduino-raspberry-pi-intel-galileo.html
+
+How setting and theoretical range combine
+https://medium.com/home-wireless/testing-lora-radios-with-the-limesdr-mini-part-2-37fa481217ff
 
 Long range (baloon) tests with some range results
 http://forum.anarduino.com/posts/list/60.page
