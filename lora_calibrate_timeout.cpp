@@ -1,9 +1,3 @@
-// rf95_reliable_datagram_client.pde
-// -*- mode: C++ -*-
-
-// See https://learn.adafruit.com/adafruit-feather-32u4-radio-with-lora-radio-module/
-
-// LORA
 #include <SPI.h>
 #include <RH_RF95.h>
 #include <RHReliableDatagram.h>
@@ -12,14 +6,18 @@
 #define SERVER_ADDRESS 2
 
 // Lora Feather
-/* #define RFM95_CS 8
+
+#define RFM95_CS 8
 #define RFM95_RST 4
-#define RFM95_INT 7 */
+#define RFM95_INT 7
+
 
 // Feather basic with fly wired Lora
+/*
 #define RFM95_CS 1
 #define RFM95_RST 11
 #define RFM95_INT 2
+*/
 
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF95_FREQ 915.0
@@ -28,7 +26,7 @@
 RH_RF95 driver(RFM95_CS, RFM95_INT);
 
 // Class to manage message delivery and receipt, using the driver declared above
-RHReliableDatagram manager(driver, CLIENT_ADDRESS);
+RHReliableDatagram manager(driver, SERVER_ADDRESS);
 
 // Blinky on transmit
 #define LED 13
@@ -111,13 +109,16 @@ void setup()
   }
   Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range."); */
 
-  /* Serial.print("\nSetting modem configuration: ");
+/*
+  Serial.print("\nSetting modem configuration: ");
   if (!driver.setModemConfig(RH_RF95::Bw500Cr45Sf128)) {
     Serial.println("FAILED");
     while (1);
   }
-  Serial.println("SUCCESS\nSet Config to: Bw = 500 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Fast+short range."); */
+  Serial.println("SUCCESS\nSet Config to: Bw = 500 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Fast+short range.");
+*/
 
+  
   Serial.print("\nSetting modem configuration: ");
     if (!driver.setModemConfig(RH_RF95::Bw31_25Cr48Sf512))
     {
@@ -162,7 +163,7 @@ void loop()
 
   if (millis() - lastTX > 1000)
   {
-    Serial.println("\nTX -> rf95_reliable_datagram_server");
+    Serial.println("\nTX -> Bouncer client");
 
   // Send a message to manager_server
     // Reset the retry counter
@@ -173,7 +174,7 @@ void loop()
     // Synchronous: any message other than the desired ACK received while waiting is discarded. Blocks until an ACK is received or all retries are exhausted
     digitalWrite(LED, HIGH);
     Serial.print(".. sendtoWait: ");
-    if (manager.sendtoWait(data, sizeof(data), SERVER_ADDRESS))
+    if (manager.sendtoWait(data, sizeof(data), CLIENT_ADDRESS))
     {
       Serial.println("SUCCESS");
       counterSuccess++;
