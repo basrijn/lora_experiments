@@ -1,5 +1,4 @@
-// Simple test program to do time based range tests
-
+// Simple test program to do range tests
 #include <SPI.h>
 #include <RH_RF95.h>
 #include <RHReliableDatagram.h>
@@ -8,11 +7,7 @@
 // Misc
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Range test global vars
-uint32_t lastTX = millis();
-uint32_t txInterval = 1000; // THis value must be large enough to fit the transmission and all retries in
-uint16_t txCounter = 0;
-uint8_t txRetries = 0;
+uint32_t lastMillis;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Configure the LED
@@ -53,19 +48,20 @@ void loraConfig()
 {
   // Determine what modem config we need to set
   Serial.print("\nSetting modem configuration: [");Serial.print(loraConfigChoice);Serial.print("] ");
-  driver.sleep();
 
   switch (loraConfigChoice)
   {
   case 5:
+    //Bw41_7Cr48Sf4086
+    driver.setSignalBandwidth(62500);
+    driver.setCodingRate4(8);
+    driver.setSpreadingFactor(12); // 4096
+    Serial.println("SUCCESS\nSet Config to: Bw = 41.7 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range");
+    break;
+  case 4:
     if (!driver.setModemConfig(RH_RF95::Bw125Cr48Sf4096))
       Serial.println("FAILED");
     Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range");
-    break;
-  case 4:
-    if (!driver.setModemConfig(RH_RF95::Bw31_25Cr48Sf512))
-      Serial.println("FAILED");
-    Serial.println("SUCCESS\nSet Config to: Bw = 31.25 kHz, Cr = 4/8, Sf = 512chips/symbol, CRC on. Slow+long range");
     break;
   case 3:
     if (!driver.setModemConfig(RH_RF95::Bw125Cr45Sf128))
@@ -78,15 +74,18 @@ void loraConfig()
     Serial.println("SUCCESS\nSet Config to: Bw = 500 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Fast+short range");
     break;
   case 1:
-    if (!driver.setModemConfig(RH_RF95::Bw125Cr48Sf4096))
-      Serial.println("FAILED");
-    Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range");
+    //Bw125Cr45Sf4086
+    driver.setSignalBandwidth(125000);
+    driver.setCodingRate4(5);
+    driver.setSpreadingFactor(12); // 4096
+    loraAckTimeout = 1000;
+    Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/5, Sf = 4096chips/symbol, CRC on. LoraWan default range");
     break;
   }
 
   // Setting timeout
   Serial.print("\nSetting modem timeout: ");
-  loraAckTimeout = 100;
+  loraAckTimeout = 2000;
   manager.setTimeout(loraAckTimeout);
   Serial.println("DONE");
 
@@ -99,8 +98,8 @@ void loraConfig()
 void setup()
 {
   Serial.begin(115200);
-  while (!Serial)
-  //  ; // uncomment to have the sketch wait until Serial is ready
+  //while (!Serial)
+  ; // uncomment to have the sketch wait until Serial is ready
 
   Serial.println("----------------------------------------");
   Serial.println(" Range test bouncer v 0.0");
@@ -161,12 +160,13 @@ void setup()
   loraConfig();
 
   Serial.println("\nAll setup tasks complete");
+  Serial.println("------------------------");
 }
 
 /// Handle inbound traffic here
 void processLora()
 {
-  if (manager.available()) // There is something received
+  if (driver.available()) // There is something received
 	{
 		// Should be a message for us now
 		uint8_t len = sizeof(buf);
@@ -192,13 +192,9 @@ void processLora()
 			Serial.print((char *)buf);
 			Serial.println("]");
 
-      // If this was a ping request, we can move down a config mode
-      if ((char *)buf != "GNIP XXX") // GNIP XXX is the delay calc packet, ignore that
-      {
-        Serial.println("\nMoving to faster Lora setting");
-        loraConfigChoice -= 1;
-        loraConfig();
-      }
+      Serial.println("\nMoving to faster Lora setting");
+      loraConfigChoice -= 1;
+      loraConfig();
 		}
 		else
 		{
@@ -214,4 +210,19 @@ void processLora()
 void loop()
 {
   processLora();
+
+ 
+  // Quick blink on the LED three seconds to show we are indeed alive
+  if (millis() - lastMillis > 3000)
+  {
+    lastMillis = millis();
+    digitalWrite(LED, HIGH);
+    delay(50);
+    digitalWrite(LED, LOW);
+    delay(100);
+    digitalWrite(LED, HIGH);
+    delay(150);
+    digitalWrite(LED, LOW);
+  }
+
 }
