@@ -40,6 +40,13 @@ The Radiohead library uses easy to translate values for most setX functions. Spr
 - RH_RF95_SPREADING_FACTOR_4096CPS == setSpreadingFactor(12)
 
 If you use a value < 6, it will 6 and > 12 will use 12
+# Range testing
+Somebody online suggests that the best predictor of success for a transmission is the SNR for the specific SF setting as documented in the datasheet. For the RF9x that is:
+
+| SpreadingFactor (Cfg)        | SF (chips/symbol)| Demodular SNR  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+
 
 # Interesting reading
 ## Adafruit articles for their hardware
