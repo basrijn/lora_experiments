@@ -44,8 +44,14 @@ If you use a value < 6, it will 6 and > 12 will use 12
 Somebody online suggests that the best predictor of success for a transmission is the SNR for the specific SF setting as documented in the datasheet. For the RF9x that is:
 
 | SpreadingFactor (Cfg)        | SF (chips/symbol)| Demodular SNR  |
-| ------------- |:-------------:| -----:|
-| col 3 is      | right-aligned | $1600 |
+| ------------- |-------------| -----|
+| 6      | 64 | -5 dB |
+| 7      | 128 | -7.5 dB |
+| 8      | 256 | -10 dB |
+| 9      | 512 | -12.5 dB |
+| 10      | 2024 | -15 dB |
+| 11      | 2048 | -17.5 dB |
+| 12      | 4086 | -20dB |
 
 
 # Interesting reading
