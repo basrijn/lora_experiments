@@ -8,6 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uint32_t lastMillis;
+uint32_t lastModeChange;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Configure the LED
@@ -28,8 +29,8 @@ uint32_t lastMillis;
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF95_FREQ 915.0
 
-uint16_t loraAckTimeout = 20;
-uint8_t loraRetries = 1;
+uint16_t loraAckTimeout = 2500;
+uint8_t loraRetries = 0;
 uint8_t loraConfigChoice = 5;
 
 // Singleton instance of the radio driver
@@ -46,6 +47,15 @@ uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
 /// Function to walk thru the differnt Lora configurations. Longest range to shortest range
 void loraConfig()
 {
+  // Loop back if did all tests
+  if (loraConfigChoice < 1)
+  {
+    Serial.println("\n---------------------------------");
+    Serial.println(" All tests completed. Restart now");
+    Serial.println("---------------------------------");
+    loraConfigChoice = 5;
+  }
+
   // Determine what modem config we need to set
   Serial.print("\nSetting modem configuration: [");Serial.print(loraConfigChoice);Serial.print("] ");
 
@@ -53,46 +63,51 @@ void loraConfig()
   {
   case 5:
     //Bw41_7Cr48Sf4086
-    driver.setSignalBandwidth(62500);
+    driver.setSignalBandwidth(41700);
     driver.setCodingRate4(8);
-    driver.setSpreadingFactor(12); // 4096
-    Serial.println("SUCCESS\nSet Config to: Bw = 41.7 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range");
+    driver.setSpreadingFactor(11); // 2048
+    Serial.println("SUCCESS\nSet Config to: Bw = 41.7 kHz, Cr = 4/8, Sf = 2048chips/symbol, CRC on. Slow+long range");
+    loraAckTimeout = 2500;
     break;
   case 4:
     if (!driver.setModemConfig(RH_RF95::Bw125Cr48Sf4096))
       Serial.println("FAILED");
     Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range");
+    loraAckTimeout = 2000;
     break;
   case 3:
-    if (!driver.setModemConfig(RH_RF95::Bw125Cr45Sf128))
-      Serial.println("FAILED");
-    Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range");
+    //Bw41_7Cr45Sf512
+    driver.setSignalBandwidth(41700);
+    driver.setCodingRate4(5);
+    driver.setSpreadingFactor(9); // 512
+    Serial.println("SUCCESS\nSet Config to: Bw = 41.7 kHz, Cr = 4/5, Sf = 512chips/symbol, CRC on. Slow+long range");
+    loraAckTimeout = 2000;
     break;
   case 2:
+    //Bw500Cr45Sf4096
+    driver.setSignalBandwidth(500000);
+    driver.setCodingRate4(5);
+    driver.setSpreadingFactor(12); // 512
+    Serial.println("SUCCESS\nSet Config to: Bw = 500 kHz, Cr = 4/5, Sf = 4096chips/symbol, CRC on. Bas Fast+long range");
+    loraAckTimeout = 2000;
+    break;
+  case 1:
     if (!driver.setModemConfig(RH_RF95::Bw500Cr45Sf128))
       Serial.println("FAILED");
     Serial.println("SUCCESS\nSet Config to: Bw = 500 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Fast+short range");
-    break;
-  case 1:
-    //Bw125Cr45Sf4086
-    driver.setSignalBandwidth(125000);
-    driver.setCodingRate4(5);
-    driver.setSpreadingFactor(12); // 4096
-    loraAckTimeout = 1000;
-    Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/5, Sf = 4096chips/symbol, CRC on. LoraWan default range");
+    loraAckTimeout = 250;
     break;
   }
 
   // Setting timeout
-  Serial.print("\nSetting modem timeout: ");
-  loraAckTimeout = 2000;
   manager.setTimeout(loraAckTimeout);
-  Serial.println("DONE");
 
   // Setting retries
-  Serial.print("\nSetting modem retries: ");
   manager.setRetries(loraRetries);
-  Serial.println("DONE");
+
+  // And set the timer for this mode
+  lastModeChange = millis();
+
 }
 
 void setup()
@@ -209,6 +224,16 @@ void processLora()
 
 void loop()
 {
+  // Proceed to next mode after 3 minutes
+  if ( (millis() - lastModeChange) > (3.0*60.0*1000.0))
+  {
+    Serial.println("\n---------------------------------");
+    Serial.println(" Retry timeout, try next mode ");
+    Serial.println("---------------------------------");
+    loraConfigChoice -= 1;
+    loraConfig();
+  }
+
   processLora();
 
  
@@ -223,6 +248,8 @@ void loop()
     digitalWrite(LED, HIGH);
     delay(150);
     digitalWrite(LED, LOW);
+
+    Serial.print("In LORA mode = ["); Serial.print(loraConfigChoice);Serial.println("]");
   }
 
 }
