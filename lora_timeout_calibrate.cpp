@@ -1,3 +1,9 @@
+// This set of small applications will run thru timeout settings until a timeout has
+// been found that results in > 97% reliable transmission
+// See https://github.com/basrijn/lora_experiments/blob/master/README.md for details
+
+// You have to manually set the encoding for each test run, see around line 92
+
 #include <SPI.h>
 #include <RH_RF95.h>
 #include <RHReliableDatagram.h>
@@ -10,7 +16,6 @@
 #define RFM95_CS 8
 #define RFM95_RST 4
 #define RFM95_INT 7
-
 
 // Feather basic with fly wired Lora
 /*
@@ -48,30 +53,13 @@ void setup()
 
   delay(100);
 
-  Serial.println("Feather LoRa Client");
+  Serial.println("Feather LoRa Timeout Xmitter");
 
   // manual reset
   digitalWrite(RFM95_RST, LOW);
   delay(10);
   digitalWrite(RFM95_RST, HIGH);
   delay(10);
-
-  // Interesting reading
-  // https://www.rocketscream.com/blog/2017/08/21/the-sx1276-modules-shootout-hoperfs-rfm95w-vs-nicerfs-lora1276-c1-vs-hpdteks-hpd13/
-  // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5038744/
-  // https://www.cooking-hacks.com/documentation/tutorials/extreme-range-lora-sx1272-module-shield-arduino-raspberry-pi-intel-galileo/
-  // http://forum.anarduino.com/posts/list/60.page
-  // https://arduino.stackexchange.com/questions/39609/radiohead-library-custom-configuration-for-rfm96-lora
-  // https://electronics.stackexchange.com/questions/278192/understanding-the-relationship-between-lora-chips-chirps-symbols-and-bits
-
-  // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
-  // Change the default config to use slow but long range
-  // Options are:
-  // Bw125Cr45Sf128, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range.
-  // Bw500Cr45Sf128, Bw = 500 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Fast+short range
-  // Bw31_25Cr48Sf512, Bw = 31.25 kHz, Cr = 4/8, Sf = 512chips/symbol, CRC on. Slow+long range.
-  // Bw125Cr48Sf4096, Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range
-  // Bw125Cr45Sf4096, Bw = 125 kHz, Cr = 4/5, Sf = 4096chips/symbol, CRC on. LoraWan default
 
   // Initiate the manager process
   while (!manager.init())
@@ -82,7 +70,7 @@ void setup()
   Serial.println("Manager initialized");
 
   manager.setTimeout(ackTimeout); // 200ms by default, not enough for slow modes?
-  manager.setRetries(0);    // 3 by default, 0  means only ever send once
+  manager.setRetries(0);          // 3 by default, 0  means only ever send once
 
   if (!driver.setFrequency(RF95_FREQ))
   {
@@ -101,47 +89,10 @@ void setup()
   // you can set transmitter powers from 5 to 23 dBm:
   driver.setTxPower(23, false);
 
-  // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
-   /* Serial.print("\nSetting modem configuration: ");
-  if (!driver.setModemConfig(RH_RF95::Bw125Cr45Sf128)) {
-    Serial.println("FAILED");
-    while (1);
-  }
-  Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range."); */
-
-/*
-  Serial.print("\nSetting modem configuration: ");
-  if (!driver.setModemConfig(RH_RF95::Bw500Cr45Sf128)) {
-    Serial.println("FAILED");
-    while (1);
-  }
-  Serial.println("SUCCESS\nSet Config to: Bw = 500 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Fast+short range.");
-*/
-
-  
-  Serial.print("\nSetting modem configuration: ");
-    if (!driver.setModemConfig(RH_RF95::Bw31_25Cr48Sf512))
-    {
-        Serial.println("FAILED");
-        while (1)
-            ;
-    }
-    Serial.println("SUCCESS\nSet Config to: Bw = 31.25 kHz, Cr = 4/8, Sf = 512chips/symbol, CRC on. Slow+long range.");
-
-  /* Serial.print("\nSetting modem configuration: ");
-  if (!driver.setModemConfig(RH_RF95::Bw125Cr48Sf4096))
-  {
-    Serial.println("FAILED");
-    while (1)
-      ;
-  }
-  Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range."); */
-
-  /* Serial.print("\nSetting modem configuration: ");
-  driver.setSignalBandwidth(125000);
-  driver.setCodingRate4(5);
-  driver.setSpreadingFactor(7);
-  Serial.println("SUCCESS\n Set Config to custom (LoraWAN default)"); */
+  driver.setSignalBandwidth(250000);
+  driver.setCodingRate4(8);
+  driver.setSpreadingFactor(12);
+  ackTimeout = 500;
 
   int16_t packetnum = 0; // packet counter, we increment per xmission
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
@@ -149,23 +100,26 @@ void setup()
   Serial.println("Done with setup()");
 } // End of setup
 
-uint8_t data[] = "Hello World! We are very happy to see you and wonder what is going on";
+uint8_t data[] = "."; // Short message to get a ballpark nr. Then try with a longer message
+// uint8_t data[] = "Hello World. How are you doing today? Hope all is well";
 // Dont put this on the stack:
 uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
 int16_t counterSuccess = 0;
 int16_t counterFail = 0;
 
 uint32_t lastTX = millis();
-uint32_t txDelay = 1000;
+uint32_t txDelay = 1100;
 
 void loop()
 {
 
   if (millis() - lastTX > 1000)
   {
-    Serial.println("\nTX -> Bouncer client");
+    Serial.print("\nTX -> Bouncer client [");
+    Serial.print(counterSuccess + counterFail);
+    Serial.println("]");
 
-  // Send a message to manager_server
+    // Send a message to manager_server
     // Reset the retry counter
     manager.resetRetransmissions();
     long lastMillis = millis();
@@ -220,22 +174,55 @@ void loop()
     lastTX = millis();
 
     // What is our successrate so far
-    Serial.print("\nTX SUCCESS % = "); Serial.print( ( (float)counterSuccess / float(counterSuccess+counterFail) )*100.0 );
-    Serial.print(" [ S|");Serial.print(counterSuccess); Serial.print(" - F|");Serial.print(counterFail);Serial.println(" ]");
+    Serial.print("\nTX SUCCESS % = ");
+    Serial.print(((float)counterSuccess / float(counterSuccess + counterFail)) * 100.0);
+    Serial.print(" [ S|");
+    Serial.print(counterSuccess);
+    Serial.print(" - F|");
+    Serial.print(counterFail);
+    Serial.println(" ]");
 
     // Run some timeout autotune logic
-    if ( ((counterFail+counterSuccess) > 20) && (counterFail > 4) ) {
+    uint16_t ackIncrease = 9999;
+
+    if ((counterFail > 5) && (counterSuccess == 0))
+    {
+      // Things are going really poorly! Skip ahead 10%
+      ackIncrease = 0.10 * ackTimeout;
+    }
+    else if (((counterFail + counterSuccess) > 20) && (counterFail >= 3))
+    {
+      ackIncrease = 0.05 * ackTimeout; // Step 5%
+    }
+    // Stop testing if we found a good result
+    if ((counterSuccess > 100) && (counterFail < 3))
+    {
+      Serial.print("\n Timeout autotune successfull with a timeout value of ");
+      Serial.println(ackTimeout);
+      while (true)
+        ;
+    }
+
+    if (ackIncrease != 9999) // We have had an update to the timeout
+    {
+      if (ackIncrease < 1)
+      {
+        ackIncrease = 1;
+      }
+      else if ((ackIncrease > 15) && (ackTimeout < 500)) // Regulate stepsize somewhat
+      {
+        ackIncrease = 15;
+      }
+
+      ackTimeout += ackIncrease;
+
+      Serial.println("\n\n-------------------------------------------");
       Serial.println(".. Timeout to low for reliable transmission");
-      ackTimeout = ackTimeout + 10;
-      Serial.print("   Setting new timeOut = "); Serial.println(ackTimeout);
+      Serial.print("   Setting new timeOut = ");
+      Serial.println(ackTimeout);
+      Serial.println("-------------------------------------------");
       manager.setTimeout(ackTimeout);
       counterSuccess = counterFail = 0;
     }
-    // Stop testing if we found a good result
-    if ( (counterSuccess > 100) && (counterFail < 3) ) {
-      Serial.print("\n Timeout autotune successfull with a timeout value of "); Serial.println(ackTimeout);
-      while ( true );
-    }
-
   }
-} 
+}
