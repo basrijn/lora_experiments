@@ -1,12 +1,18 @@
 # LORA testing
 
 ## Issues
-If two radio do not want to connect reliably, check if you are using a narrow bandwidth. Small amounts if misallignment between the frequencies used by the radios causes issues.
+If two radio do not want to connect reliably, check if you are using a narrow bandwidth and high spreading factor. Configurations < 125 kHz and SF 12 are not likely to work reliably.
+
+On the opposite side, the very fast modes, I've not been able to get anything faster then Bw=500 kHz, CR=4/6, Sf=7 (128) to work with the radios next to each other on the desk.
 
 ## Reliable datagram
 Make sure to only do a manager.init() and not a driver.init() AND an manager.init(). The effect is that the TX power is dropped to near zero.
 
 For the slower modes the setTimeout must be adjusted to get a reliable connection. Based on a 100 packet experiment, with a required pass rate of 99% the following timeouts could be used (pick higher to be save):
+|Radio Modem Cfg| Bandwdith | Coding Rate |Spreading factor | Reliable timeout|
+|-----|-----|-----|-----|-----|
+|Custom|125kHz|4/8|11 (2048)|950|
+|Custom|500khz|4/6|7 (128)|11|
 
 ### RH_RF95::Bw125Cr45Sf128, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range
 Timeout 40
@@ -53,6 +59,10 @@ Somebody online suggests that the best predictor of success for a transmission i
 | 11      | 2048 | -17.5 dB |
 | 12      | 4086 | -20dB |
 
+To optimize range, going by the "How setting and theoretical range combine" article I listed below:
+* Each doubling of the bandwidth correlates to almost 3dB less link budget
+* Each increase in S of 1 unit (in Sf) increases the SNR at the demodulator of 2.5 dB.
+* Maximize coding rate (CR) to increase reliability. Overhead goes from 1.25 for 4/5 to 2.00 for 4/8
 
 # Interesting reading
 ## Adafruit articles for their hardware
