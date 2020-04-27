@@ -8,12 +8,19 @@ On the opposite side, the very fast modes, I've not been able to get anything fa
 ## Reliable datagram
 Make sure to only do a manager.init() and not a driver.init() AND an manager.init(). The effect is that the TX power is dropped to near zero.
 
-For the slower modes the setTimeout must be adjusted to get a reliable connection. Based on a 100 packet experiment, with a required pass rate of 99% the following timeouts could be used (pick higher to be save):
-|Radio Modem Cfg| Bandwdith | Coding Rate |Spreading factor | Reliable timeout|
-|-----|-----|-----|-----|-----|
-|Custom|125kHz|4/8|11 (2048)|950|
-|Custom|500khz|4/6|7 (128)|11|
+For the slower modes the setTimeout must be adjusted to get a reliable connection. Based on a 100 packet experiment, with a required pass rate of 97% the following timeouts could be used (pick higher to be save). Below are my custom settings I tuned for my own needs:
 
+|Notes| Bandwdith | Coding Rate |Spreading factor | Reliable timeout|
+|-----|-----|-----|-----|-----|
+|Slowest| 62.5 kHz|4/8|11 (2048)|1300|
+|SF 12 / Lowest Bw| 125 kHz|4/8|12 (4086)|1000|
+|Bas Mode 1|250 kHz|4/8|12 (4096)|550|
+|Bas Mode 2|125 kHz|4/8|9 (512)|365|
+|SF 12 / Highest Bw| 125 kHz|4/8|12 (4086)|260|
+|Bas Mode 3|250 kHz|4/6|9 (512)|77|
+|Fastest, reliable in bench tests|500 kHz|4/6|7 (128)|12|
+
+Below are the default modes
 ### RH_RF95::Bw125Cr45Sf128, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range
 Timeout 40
 
