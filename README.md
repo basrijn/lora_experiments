@@ -33,14 +33,6 @@ Timeout set to 700ms
 ### RH_RF95::Bw125Cr48Sf4096, Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range
 Timeout set to 1000
 
-### Custom profile as used by LoRaWan nodes
-```
-driver.setSignalBandwidth(125000);
-driver.setCodingRate4(5);
-driver.setSpreadingFactor(7);
-```
-Timeout set to 40
-
 ## Cheat sheet for the spreading factors
 The Radiohead library uses easy to translate values for most setX functions. Spreading factor is a little different and needs checking the header file. For easy translations:
 
