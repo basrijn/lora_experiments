@@ -16,7 +16,7 @@ For the slower modes the setTimeout must be adjusted to get a reliable connectio
 |SF 12 / Lowest Bw| 125 kHz|4/8|12 (4086)|1000|
 |Bas Mode 1|250 kHz|4/8|12 (4096)|550|
 |Bas Mode 2|125 kHz|4/8|9 (512)|365|
-|SF 11 / Highest Bw| 500 kHz|4/8|12 (4086)|270|
+|SF 11 / Highest Bw| 500 kHz|4/8|11 (4086)|250|
 |Bas Mode 3|250 kHz|4/6|9 (512)|77|
 |Fastest, reliable in bench tests|500 kHz|4/6|7 (128)|12|
 
