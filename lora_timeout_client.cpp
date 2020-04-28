@@ -1,9 +1,9 @@
-// rf95_reliable_datagram_client.pde
-// -*- mode: C++ -*-
+// This set of small applications will run thru timeout settings until a timeout has
+// been found that results in > 97% reliable transmission
+// See https://github.com/basrijn/lora_experiments/blob/master/README.md for details
 
-// See https://learn.adafruit.com/adafruit-feather-32u4-radio-with-lora-radio-module/
+// You have to manually set the encoding for each test run, see around line 97
 
-// LORA
 #include <SPI.h>
 #include <RH_RF95.h>
 #include <RHReliableDatagram.h>
@@ -40,6 +40,9 @@ RHReliableDatagram manager(driver, CLIENT_ADDRESS);
 // Global variable
 uint16_t ackTimeout = 10;
 uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
+uint16_t packetCounter = 0;
+uint32_t lastMillis = millis();
+uint8_t data[] = "Hello World. How are you doing today? Hope all is well";
 
 void setup()
 {
@@ -55,30 +58,13 @@ void setup()
 
   delay(100);
 
-  Serial.println("Feather LoRa Client");
+  Serial.println("Feather LoRa Timeout Client");
 
   // manual reset
   digitalWrite(RFM95_RST, LOW);
   delay(10);
   digitalWrite(RFM95_RST, HIGH);
   delay(10);
-
-  // Interesting reading
-  // https://www.rocketscream.com/blog/2017/08/21/the-sx1276-modules-shootout-hoperfs-rfm95w-vs-nicerfs-lora1276-c1-vs-hpdteks-hpd13/
-  // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5038744/
-  // https://www.cooking-hacks.com/documentation/tutorials/extreme-range-lora-sx1272-module-shield-arduino-raspberry-pi-intel-galileo/
-  // http://forum.anarduino.com/posts/list/60.page
-  // https://arduino.stackexchange.com/questions/39609/radiohead-library-custom-configuration-for-rfm96-lora
-  // https://electronics.stackexchange.com/questions/278192/understanding-the-relationship-between-lora-chips-chirps-symbols-and-bits
-
-  // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
-  // Change the default config to use slow but long range
-  // Options are:
-  // Bw125Cr45Sf128, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range.
-  // Bw500Cr45Sf128, Bw = 500 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Fast+short range
-  // Bw31_25Cr48Sf512, Bw = 31.25 kHz, Cr = 4/8, Sf = 512chips/symbol, CRC on. Slow+long range.
-  // Bw125Cr48Sf4096, Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range
-  // Bw125Cr45Sf4096, Bw = 125 kHz, Cr = 4/5, Sf = 4096chips/symbol, CRC on. LoraWan default
 
   // Initiate the manager process
   while (!manager.init())
@@ -108,47 +94,10 @@ void setup()
   // you can set transmitter powers from 5 to 23 dBm:
   driver.setTxPower(23, false);
 
-  // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
-   /* Serial.print("\nSetting modem configuration: ");
-  if (!driver.setModemConfig(RH_RF95::Bw125Cr45Sf128)) {
-    Serial.println("FAILED");
-    while (1);
-  }
-  Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range."); */
-/*
-  Serial.print("\nSetting modem configuration: ");
-  if (!driver.setModemConfig(RH_RF95::Bw500Cr45Sf128)) {
-    Serial.println("FAILED");
-    while (1);
-  }
-  Serial.println("SUCCESS\nSet Config to: Bw = 500 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Fast+short range.");
- */
-
-
-  Serial.print("\nSetting modem configuration: ");
-    if (!driver.setModemConfig(RH_RF95::Bw31_25Cr48Sf512))
-    {
-        Serial.println("FAILED");
-        while (1)
-            ;
-    }
-    Serial.println("SUCCESS\nSet Config to: Bw = 31.25 kHz, Cr = 4/8, Sf = 512chips/symbol, CRC on. Slow+long range.");
-
-  /* Serial.print("\nSetting modem configuration: ");
-  if (!driver.setModemConfig(RH_RF95::Bw125Cr48Sf4096))
-  {
-    Serial.println("FAILED");
-    while (1)
-      ;
-  }
-  Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range."); */
-
-  /* Serial.print("\nSetting modem configuration: ");
-  driver.setSignalBandwidth(125000);
-  driver.setCodingRate4(5);
-  driver.setSpreadingFactor(7);
-  Serial.println("SUCCESS\n Set Config to custom (LoraWAN default)"); */
-
+  driver.setSignalBandwidth(250000);
+  driver.setCodingRate4(8);
+  driver.setSpreadingFactor(12);
+  ackTimeout = 1500;
 
 
   Serial.println("Done with setup()");
@@ -156,14 +105,15 @@ void setup()
 
 void loop()
 {
-  if (manager.available()) // There is something received
+  if (driver.available()) // There is something received
   {
     // Should be a message for us now
     uint8_t len = sizeof(buf);
     uint8_t from;
     uint8_t to;
+    packetCounter+= 1;
 
-    Serial.println("\nMessage received");
+    Serial.print("\nMessage received ["); Serial.print(packetCounter); Serial.println("]");
     digitalWrite(LED, HIGH);
 
     // If there is a valid message available for this node, send an acknowledgement to the SRC address (blocking until this is complete),
@@ -194,4 +144,5 @@ void loop()
     }
     digitalWrite(LED, LOW);
   }
+
 }
