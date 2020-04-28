@@ -2,6 +2,7 @@
 #include <SPI.h>
 #include <RH_RF95.h>
 #include <RHReliableDatagram.h>
+#include <Adafruit_NeoPixel.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Misc
@@ -11,9 +12,11 @@ uint32_t lastMillis;
 uint32_t lastModeChange;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Configure the LED
+// Configure the LED and Neopixel
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define LED 13
+#define NEO  11
+Adafruit_NeoPixel pixels(1, NEO, NEO_RGB + NEO_KHZ800);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Configure the LORA modem (RFM9x)
@@ -43,6 +46,30 @@ char data[RH_RF95_MAX_MESSAGE_LEN] = "";
 // Dont put this on the stack:
 uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
 
+void neoPixelBySNR()
+{
+  int red = 0;
+  int green = 0;
+  int blue = 0;
+
+  if ( driver.lastSNR() > 0)
+  {
+    green = 125;
+  }
+  else if (driver.lastSNR() < -20 )
+  {
+    red = 125;
+  }
+  else
+  {
+    red = 125;
+    green = 125; 
+  }
+  
+
+  pixels.setPixelColor(0, pixels.Color(red, green, blue));
+  pixels.show();
+}
 
 /// Function to walk thru the differnt Lora configurations. Longest range to shortest range
 void loraConfig()
@@ -59,43 +86,47 @@ void loraConfig()
   // Determine what modem config we need to set
   Serial.print("\nSetting modem configuration: [");Serial.print(loraConfigChoice);Serial.print("] ");
 
-  switch (loraConfigChoice)
+    switch (loraConfigChoice)
   {
   case 5:
-    //Bw41_7Cr48Sf4086
-    driver.setSignalBandwidth(41700);
+    driver.setSignalBandwidth(62500);
     driver.setCodingRate4(8);
     driver.setSpreadingFactor(11); // 2048
-    Serial.println("SUCCESS\nSet Config to: Bw = 41.7 kHz, Cr = 4/8, Sf = 2048chips/symbol, CRC on. Slow+long range");
-    loraAckTimeout = 2500;
+    Serial.println("SUCCESS");
+    Serial.println("Set Config to: Bw = 62.5 kHz, Cr = 4/8, Sf = 2048 chips/symbol | Slowest config");
+    loraAckTimeout = 1500;
     break;
   case 4:
-    if (!driver.setModemConfig(RH_RF95::Bw125Cr48Sf4096))
-      Serial.println("FAILED");
-    Serial.println("SUCCESS\nSet Config to: Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range");
-    loraAckTimeout = 2000;
+    driver.setSignalBandwidth(125000);
+    driver.setCodingRate4(8);
+    driver.setSpreadingFactor(12); // 4096
+    Serial.println("SUCCESS");
+    Serial.println("Set Config to: Bw = 125 kHz, Cr = 4/8, Sf = 4096 chips/symbol | SF 12 / Lowest Bw config");
+    loraAckTimeout = 1200;
     break;
   case 3:
-    //Bw41_7Cr45Sf512
-    driver.setSignalBandwidth(41700);
-    driver.setCodingRate4(5);
-    driver.setSpreadingFactor(9); // 512
-    Serial.println("SUCCESS\nSet Config to: Bw = 41.7 kHz, Cr = 4/5, Sf = 512chips/symbol, CRC on. Slow+long range");
-    loraAckTimeout = 2000;
+    driver.setSignalBandwidth(250000);
+    driver.setCodingRate4(8);
+    driver.setSpreadingFactor(12); // 4096
+    Serial.println("SUCCESS");
+    Serial.println("Set Config to: Bw = 250 kHz, Cr = 4/8, Sf = 4096 chips/symbol | Bas Mode 1");
+    loraAckTimeout = 650;
     break;
   case 2:
-    //Bw500Cr45Sf4096
     driver.setSignalBandwidth(500000);
-    driver.setCodingRate4(5);
-    driver.setSpreadingFactor(12); // 512
-    Serial.println("SUCCESS\nSet Config to: Bw = 500 kHz, Cr = 4/5, Sf = 4096chips/symbol, CRC on. Bas Fast+long range");
-    loraAckTimeout = 2000;
+    driver.setCodingRate4(8);
+    driver.setSpreadingFactor(11); // 2048
+    Serial.println("SUCCESS");
+    Serial.println("Set Config to: Bw = 500 kHz, Cr = 4/8, Sf = 2048 chips/symbol | SF 11 / Highest Bw");
+    loraAckTimeout = 500;
     break;
   case 1:
-    if (!driver.setModemConfig(RH_RF95::Bw500Cr45Sf128))
-      Serial.println("FAILED");
-    Serial.println("SUCCESS\nSet Config to: Bw = 500 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Fast+short range");
-    loraAckTimeout = 250;
+    driver.setSignalBandwidth(250000);
+    driver.setCodingRate4(6);
+    driver.setSpreadingFactor(9); // 512
+    Serial.println("SUCCESS");
+    Serial.println("Set Config to: Bw = 250 kHz, Cr = 4/6, Sf = 512 chips/symbol | Bas Mode 3");
+    loraAckTimeout = 300;
     break;
   }
 
@@ -124,6 +155,10 @@ void setup()
   // LED
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   pinMode(LED, OUTPUT);
+  pixels.begin();
+  pixels.clear();
+  pixels.setPixelColor(0, pixels.Color(0 , 0, 0));
+  pixels.show();
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Lora
@@ -187,14 +222,17 @@ void processLora()
 		uint8_t len = sizeof(buf);
 		uint8_t from;
 
-    Serial.println("\nMessage received. Sending ACK");
+    Serial.println("\n----------------------");
+    Serial.print("Received a ping ["); Serial.print(loraConfigChoice);Serial.println("]");
+    Serial.println("----------------------");
 		digitalWrite(LED, HIGH);
+    neoPixelBySNR();
 
 		// If there is a valid message available for this node, send an acknowledgement to the SRC address (blocking until this is complete),
 		// then copy the message to buf and return true else return false
 		if (manager.recvfromAck(buf, &len, &from))
 		{
-			Serial.print("\nRX: Got request from : ");
+			Serial.print("Got request from : ");
 			Serial.print(from, DEC);
 
 			Serial.print(" with RSSI=");
@@ -207,7 +245,7 @@ void processLora()
 			Serial.print((char *)buf);
 			Serial.println("]");
 
-      Serial.println("\nMoving to faster Lora setting");
+      Serial.println("Moving to faster Lora setting");
       loraConfigChoice -= 1;
       loraConfig();
 		}
@@ -216,6 +254,9 @@ void processLora()
 			Serial.println(".. Failed to Deliver ACK");
 		}
     digitalWrite(LED, LOW);
+    pixels.setPixelColor(0, pixels.Color(0 , 0, 0));
+    pixels.show();
+
   }
   
 }
@@ -236,7 +277,6 @@ void loop()
 
   processLora();
 
- 
   // Quick blink on the LED three seconds to show we are indeed alive
   if (millis() - lastMillis > 3000)
   {
