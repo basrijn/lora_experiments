@@ -10,6 +10,7 @@
 
 uint32_t lastMillis;
 uint32_t lastModeChange;
+uint8_t loraConfigDelay = 15.0; // Default of 15 second wait
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Configure the LED and Neopixel
@@ -52,7 +53,7 @@ void neoPixelBySNR()
   int green = 0;
   int blue = 0;
 
-  if ( driver.lastSNR() > 0)
+  if ( driver.lastSNR() > 10)
   {
     green = 125;
   }
@@ -62,8 +63,10 @@ void neoPixelBySNR()
   }
   else
   {
-    red = 125;
-    green = 125; 
+    green = round(( (driver.lastSNR()+20.0) / 30.0 )  * 125.0);
+    Serial.print("Green = "); Serial.println(green);
+    Serial.print("For SNR = "); Serial.println(driver.lastSNR());
+    red = 125 - green; 
   }
   
 
@@ -71,9 +74,67 @@ void neoPixelBySNR()
   pixels.show();
 }
 
+void ledShowConfig()
+{
+  // Turn on the LED with a specific color to show the active mode
+  int red = 0;
+  int green = 0;
+  int blue = 0;
+
+  pixels.clear();
+  
+  
+  switch (loraConfigChoice)
+  {
+  case 5:
+    blue = 255;
+    break;
+  case 4:
+    red = 255;
+    green = 255;
+    break;
+  case 3:
+    red = 128;
+    blue = 128;
+    break;
+  case 2:
+    red = 255;
+    green = 255;
+    blue=255;
+    break;
+  case 1:
+    red = 255;
+    green = 165;
+    break;
+  }
+
+  pixels.setPixelColor(0, pixels.Color(red, green, blue));
+  pixels.show();
+  delay(100);
+  pixels.clear();
+  pixels.show();
+  delay(100);
+  pixels.setPixelColor(0, pixels.Color(red, green, blue));
+  pixels.show();
+  delay(100);
+  pixels.clear();
+  pixels.show();
+  
+}
+
 /// Function to walk thru the differnt Lora configurations. Longest range to shortest range
 void loraConfig()
 {
+  // Cycle the modem, just to be sure
+  digitalWrite(RFM95_RST, LOW);
+  delay(500);
+  digitalWrite(RFM95_RST, HIGH);
+  delay(1500);
+  manager.init();
+
+  driver.setFrequency(RF95_FREQ);
+  driver.setTxPower(23, false);
+
   // Loop back if did all tests
   if (loraConfigChoice < 1)
   {
@@ -82,11 +143,19 @@ void loraConfig()
     Serial.println("---------------------------------");
     loraConfigChoice = 5;
   }
+  else if (loraConfigChoice > 5)
+  {
+    // This should never have happened, but .. 
+    loraConfigChoice = 5;
+  }
 
   // Determine what modem config we need to set
   Serial.print("\nSetting modem configuration: [");Serial.print(loraConfigChoice);Serial.print("] ");
 
-    switch (loraConfigChoice)
+  // Show the mode by coolor
+  ledShowConfig();
+
+  switch (loraConfigChoice)
   {
   case 5:
     driver.setSignalBandwidth(62500);
@@ -95,6 +164,7 @@ void loraConfig()
     Serial.println("SUCCESS");
     Serial.println("Set Config to: Bw = 62.5 kHz, Cr = 4/8, Sf = 2048 chips/symbol | Slowest config");
     loraAckTimeout = 1500;
+    loraConfigDelay = 70.0; // We wait for a minute in Mode 5, to pick the other side up
     break;
   case 4:
     driver.setSignalBandwidth(125000);
@@ -103,6 +173,7 @@ void loraConfig()
     Serial.println("SUCCESS");
     Serial.println("Set Config to: Bw = 125 kHz, Cr = 4/8, Sf = 4096 chips/symbol | SF 12 / Lowest Bw config");
     loraAckTimeout = 1200;
+    loraConfigDelay = 15.0;
     break;
   case 3:
     driver.setSignalBandwidth(250000);
@@ -265,12 +336,13 @@ void processLora()
 
 void loop()
 {
-  // Proceed to next mode after 3 minutes
-  if ( (millis() - lastModeChange) > (3.0*60.0*1000.0))
+  // Fall back to the longest range mode after 15 seconds of failures
+  if ( (millis() - lastModeChange) > (loraConfigDelay*1000.0))
   {
     Serial.println("\n---------------------------------");
-    Serial.println(" Retry timeout, try next mode ");
+    Serial.println(" Retry timeout, next Config");
     Serial.println("---------------------------------");
+
     loraConfigChoice -= 1;
     loraConfig();
   }
