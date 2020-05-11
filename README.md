@@ -45,6 +45,7 @@ The Radiohead library uses easy to translate values for most setX functions. Spr
 - RH_RF95_SPREADING_FACTOR_4096CPS == setSpreadingFactor(12)
 
 If you use a value < 6, it will 6 and > 12 will use 12
+
 # Range testing
 Somebody online suggests that the best predictor of success for a transmission is the SNR for the specific SF setting as documented in the datasheet. For the RF9x that is:
 
@@ -62,6 +63,30 @@ To optimize range, going by the "How setting and theoretical range combine" arti
 * Each doubling of the bandwidth correlates to almost 3dB less link budget
 * Each increase in S of 1 unit (in Sf) increases the SNR at the demodulator of 2.5 dB.
 * Maximize coding rate (CR) to increase reliability. Overhead goes from 1.25 for 4/5 to 2.00 for 4/8
+
+## Test equipment
+* Xmitter: Feather 32u4 with RFM95C and external antenna
+* Receiver: Feather 32u4 with RFM95 and external antenna
+
+## Test results
+### Burnaby Lake
+From the dock to a path close to the finish line for a distance of 2.87km over mostly water and some trees
+| Protocol #| Protocol detail| SNR|Xmit time
+|---|---|---|---|
+|5|Bw=62.5, CR=4/8, SF=11|-12|2427|
+|4|Bw=125, CR=4/8, SF=12|-15|2168|
+|3|Bw=250, CR=4/8, SF=12|-4|1086|
+|2|Bw=500, CR=4/8, SF=11|-12|274|
+
+For a second run
+
+| Protocol #| Protocol detail| SNR|Xmit time
+|---|---|---|---|
+|5|Bw=62.5, CR=4/8, SF=11|-12|2427|
+|4|Bw=125, CR=4/8, SF=12|-9|2169|
+|3|Bw=250, CR=4/8, SF=12|-10|1085|
+|2|Bw=500, CR=4/8, SF=11|-13|275|
+|1|Bw=250, CR=4/6, SF=9|-9|151
 
 # Interesting reading
 ## Adafruit articles for their hardware
