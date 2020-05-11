@@ -137,7 +137,7 @@ LaCrosse box
 |2|Bw=500, CR=4/8, SF=11|-12|274|
 |1|Bw=250, CR=4/6, SF=9|-9|149
 
-First river spot
+First river spot, 280m behind a hill
 
 | Protocol #| Protocol detail| SNR|Xmit time
 |---|---|---|---|
@@ -147,7 +147,7 @@ First river spot
 |2|Bw=500, CR=4/8, SF=11|-10|274|
 |1|Bw=250, CR=4/6, SF=9|-6|150
 
-Second river spot
+Second river spot, 580m behind a hill
 | Protocol #| Protocol detail| SNR|Xmit time
 |---|---|---|---|
 |5|Bw=62.5, CR=4/8, SF=11|-17|2426|
