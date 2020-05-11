@@ -88,6 +88,35 @@ For a second run
 |2|Bw=500, CR=4/8, SF=11|-13|275|
 |1|Bw=250, CR=4/6, SF=9|-9|151
 
+### Close to home
+LaCrosse box
+
+| Protocol #| Protocol detail| SNR|Xmit time
+|---|---|---|---|
+|5|Bw=62.5, CR=4/8, SF=11|-3|2427|
+|4|Bw=125, CR=4/8, SF=12|-7|2456|
+|3|Bw=250, CR=4/8, SF=12|-9|1218|
+|2|Bw=500, CR=4/8, SF=11|-12|274|
+|1|Bw=250, CR=4/6, SF=9|-9|149
+
+First river spot
+
+| Protocol #| Protocol detail| SNR|Xmit time
+|---|---|---|---|
+|5|Bw=62.5, CR=4/8, SF=11|-7|2427|
+|4|Bw=125, CR=4/8, SF=12|-4|2169|
+|3|Bw=250, CR=4/8, SF=12|-8|1085|
+|2|Bw=500, CR=4/8, SF=11|-10|274|
+|1|Bw=250, CR=4/6, SF=9|-6|150
+
+Second river spot
+| Protocol #| Protocol detail| SNR|Xmit time
+|---|---|---|---|
+|5|Bw=62.5, CR=4/8, SF=11|-17|2426|
+|4|Bw=125, CR=4/8, SF=12|-17|2169|
+|3|Bw=250, CR=4/8, SF=12|-19|1086|
+
+
 # Interesting reading
 ## Adafruit articles for their hardware
 https://learn.adafruit.com/adafruit-rfm69hcw-and-rfm96-rfm95-rfm98-lora-packet-padio-breakouts
