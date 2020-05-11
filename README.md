@@ -88,6 +88,44 @@ For a second run
 |2|Bw=500, CR=4/8, SF=11|-13|275|
 |1|Bw=250, CR=4/6, SF=9|-9|151
 
+### Cabin
+
+At park entrance bridge, 2.87km
+| Protocol #| Protocol detail| SNR|Xmit time
+|---|---|---|---|
+|5|Bw=62.5, CR=4/8, SF=11|-14|2427|
+|4|Bw=125, CR=4/8, SF=12|-12|2169|
+|3|Bw=250, CR=4/8, SF=12|-16|1085|
+
+Second set at little hill
+
+| Protocol #| Protocol detail| SNR|Xmit time
+|---|---|---|---|
+|5|Bw=62.5, CR=4/8, SF=11|-10|2427|
+|4|Bw=125, CR=4/8, SF=12|-15|2169|
+|3|Bw=250, CR=4/8, SF=12|-15|1085|
+|2|Bw=500, CR=4/8, SF=11|-17|275|
+
+Edge of field, 1.65km
+
+| Protocol #| Protocol detail| SNR|Xmit time
+|---|---|---|---|
+|5|Bw=62.5, CR=4/8, SF=11|-9|2427|
+|4|Bw=125, CR=4/8, SF=12|-3|2169|
+|3|Bw=250, CR=4/8, SF=12|-6|1085|
+|2|Bw=500, CR=4/8, SF=11|-12|275|
+|1|Bw=250, CR=4/6, SF=9|-9|151
+
+Run 2
+
+| Protocol #| Protocol detail| SNR|Xmit time
+|---|---|---|---|
+|5|Bw=62.5, CR=4/8, SF=11|-6|2427|
+|4|Bw=125, CR=4/8, SF=12|-10|2169|
+|3|Bw=250, CR=4/8, SF=12|-15|1085|
+|2|Bw=500, CR=4/8, SF=11|-16|275|
+|1|Bw=250, CR=4/6, SF=9|-11|151
+
 ### Close to home
 LaCrosse box
 
