@@ -156,6 +156,7 @@ Second river spot, 580m behind a hill
 
 ## Lora Mesh
 By using the Radiohead Mesh mode, nodes can be added when coverage is not sufficient for the START and FINISH to reach each other directly. It will take longer for the packets to arrive, but they will. In theory the mesh can be extended as far as needed. 
+https://nootropicdesign.com/projectlab/2018/10/20/lora-mesh-networking/
 
 # Interesting reading
 ## Adafruit articles for their hardware
