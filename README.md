@@ -154,6 +154,8 @@ Second river spot, 580m behind a hill
 |4|Bw=125, CR=4/8, SF=12|-17|2169|
 |3|Bw=250, CR=4/8, SF=12|-19|1086|
 
+## Lora Mesh
+By using the Radiohead Mesh mode, nodes can be added when coverage is not sufficient for the START and FINISH to reach each other directly. It will take longer for the packets to arrive, but they will. In theory the mesh can be extended as far as needed. 
 
 # Interesting reading
 ## Adafruit articles for their hardware
